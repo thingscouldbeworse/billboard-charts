@@ -294,10 +294,10 @@ class ChartData:
                             headingText = heading.string.strip().lower()
                             if headingText == fieldName:
                                 value = ministat.text.split(u"\xa0")[0].strip()
-                                if value is None or value == "-":
-                                    return ifNoValue
-                                else:
+                                try:
                                     return int(value)
+                                except ValueError:
+                                    return ifNoValue
                         return ifNoValue
                     except Exception as e:
                         print(e)
@@ -380,10 +380,10 @@ class ChartData:
                         return ifNoValue
 
                     value = selected.text.strip()
-                    if value == "-":
-                        return ifNoValue
-                    else:
+                    try:
                         return int(value)
+                    except ValueError:
+                        return ifNoValue
                 except:
                     message = "Failed to parse metadata value: %s" % attribute
                     raise BillboardParseException(message)
