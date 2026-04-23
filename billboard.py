@@ -320,7 +320,8 @@ class ChartData:
     def _pageHasAwardColumn(self, soup):
         cols = soup.select(_CHART_HEADER_CELLS)
         for span in cols:
-            if "award" in span.string.lower():
+            text = getattr(span, "string", None) or (span.get_text() if span else "")
+            if text and "award" in text.lower():
                 return True
         return False
 
@@ -374,17 +375,25 @@ class ChartData:
 
             def getMeta(attribute, which_li, ifNoValue=None):
                 try:
-                    selected = entrySoup.select_one("ul").select("li")[which_li]
-
+                    ulist = entrySoup.select_one("ul")
+                    if not ulist:
+                        return ifNoValue
+                    lis = ulist.select("li")
+                    if which_li >= len(lis):
+                        return ifNoValue
+                    selected = lis[which_li]
                     if not selected:
                         return ifNoValue
 
-                    value = selected.text.strip()
+                    value = selected.get_text(" ", strip=True)
+                    # Spacer <li> may be empty; never call int("").
+                    if not value or value == "-":
+                        return ifNoValue
                     try:
                         return int(value)
                     except ValueError:
                         return ifNoValue
-                except:
+                except Exception:
                     message = "Failed to parse metadata value: %s" % attribute
                     raise BillboardParseException(message)
 
